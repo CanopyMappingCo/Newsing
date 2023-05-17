@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>News Map</title>
+  <style>
+    #map {
+      height: 400px; /* Set the desired height for the map container */
+      width: 100%; /* Set the width to occupy the entire container */
+    }
+  </style>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+  <h1>News Map</h1>
+  <div id="map"></div>
+  <div id="newsFeed"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  // Replace with your Mapbox access token
+  mapboxgl.accessToken = 'pk.eyJ1IjoiY2Fub3B5bWFwcGluZ2NvIiwiYSI6ImNrd3dzOXk3ejA3ODEycHF0ZHZrejVsZTkifQ.curorfyeruXgXjIsa_L6Cw';
+
+  // Initialize the map
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11', // Choose your desired Mapbox style
+    center: [-122.4194, 37.7749], // Set the initial map center coordinates
+    zoom: 10 // Set the initial zoom level
+  });
+
+  // Function to fetch news and update the news feed
+  function fetchNewsAndDisplay(latitude, longitude) {
+    // Replace with your News API key
+    var newsApiKey = '1a1f92c52dcfc7f9ea851db15b6ff03f';
+
+    // Fetch news using Axios
+    axios.get('https://newsapi.org/v2/top-headlines', {
+      params: {
+        q: 'location',
+        language: 'en',
+        lat: latitude,
+        lon: longitude,
+        radius: 50,
+        apiKey: newsApiKey
+      }
+    })
+    .then(function(response) {
+      var articles = response.data.articles;
+      var newsFeed = document.getElementById('newsFeed');
+      newsFeed.innerHTML = '';
+
+      if (articles.length > 0) {
+        articles.forEach(function(article) {
+          var title = article.title;
+          var description = article.description;
+
+          var articleElement = document.createElement('div');
+          articleElement.innerHTML = '<h3>' + title + '</h3><p>' + description + '</p>';
+
+          newsFeed.appendChild(articleElement);
+        });
+      } else {
+        var noNewsElement = document.createElement('div');
+        noNewsElement.innerText = 'No news found for the specified location.';
+        newsFeed.appendChild(noNewsElement);
+      }
+    })
+    .catch(function(error) {
+      console.log(error);
+    });
+  }
+
+  // Fetch news when the map finishes loading
+  map.on('load', function() {
+    // Get the current map center coordinates
+    var center = map.getCenter();
+    var latitude = center.lat;
+    var longitude = center.lng;
+
+    // Call the function to fetch news and display on the map
+    fetchNewsAndDisplay(latitude, longitude);
+  });
+
+  // Fetch news when the map finishes moving
+  map.on('moveend', function() {
+    // Get the updated map center coordinates
+    var center = map.getCenter();
+    var latitude = center.lat;
+    var longitude = center.lng;
+
+    // Call the function to fetch news and display on the map
+    fetchNewsAndDisplay(latitude, longitude);
+  });
+
+
+</script>
+</body>
+</html>
